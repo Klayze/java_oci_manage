@@ -43,7 +43,7 @@ Click "New Token" and fill in four things:
 The token is **shown only once**, and the same page gives you three ready-to-paste configs:
 
 - Claude Code
-- Codex CLI (goes in `~/.codex/config.toml`)
+- Codex CLI: two parts — the `export` line goes in `~/.bashrc` or `~/.zshrc` (takes effect in a new terminal), the rest in `~/.codex/config.toml`
 - JSON for Cursor and other clients
 
 Copy the one you need into your AI client's config. The address and token are already filled in.
@@ -58,19 +58,26 @@ Once it is set up, just ask the AI things like "check disk usage on the web serv
 
 Anything that can run commands can leave itself a backdoor. Do not give it root or the account you use yourself.
 
-Create a dedicated account on the server:
+Create a dedicated account on the server, and put its public key somewhere it cannot edit:
 
 ```bash
 useradd -m -s /bin/bash aiagent
+mkdir -p /etc/ssh/keys
+echo "ssh-ed25519 AAAA...your-public-key" > /etc/ssh/keys/aiagent
 ```
 
-Then keep that account's `authorized_keys` somewhere it cannot edit, in `/etc/ssh/sshd_config`:
+Then add these two lines at the end of `/etc/ssh/sshd_config`, so they apply to this account only:
 
 ```
-AuthorizedKeysFile /etc/ssh/keys/%u
+Match User aiagent
+    AuthorizedKeysFile /etc/ssh/keys/%u
 ```
 
-Save the host in the panel under this account, and tick only that host when issuing the token.
+**Do not** put `AuthorizedKeysFile` on its own without `Match User`. Every account would then look for keys in that directory, the keys of the account you log in with now (root, ubuntu, opc, and so on) would stop working, and you could lock yourself out of the server.
+
+Run `sshd -t` to check for mistakes, then restart sshd. Keep your current session open and confirm in a new window that both your usual account and aiagent can still log in.
+
+Save the host in the panel as aiagent, and tick only that host when issuing the token.
 
 **2. What the AI sees goes to the AI provider.**
 

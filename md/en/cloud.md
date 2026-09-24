@@ -106,6 +106,8 @@ Free users can audit the current account only; Lightning users can handle every 
 | Delete user | Remove a user |
 | Password policy | See expiry and complexity rules |
 
+Some of these need the API user to hold the "Identity Domain Administrator" role. If you are told the operation requires Identity Domain administrator privileges, grant the role in the OCI console under Identity & Security → Domains → Default → Security → Administrators, then retry.
+
 ### Object Storage
 
 | Action | Notes |
@@ -122,7 +124,7 @@ Free users can audit the current account only; Lightning users can handle every 
 |------|------|
 | Profile list | Every Oracle account, marking those with an API outbound proxy |
 | Switch profile | Work on another account |
-| Copy to new region | Duplicate an account with a different region instead of re-entering the API details |
+| Copy to region | Duplicate an account with a different region instead of re-entering the API details |
 | API outbound proxy | Give one account its own proxy — see [How-To Guide](./howto.md#give-each-account-its-own-outbound-ip) |
 | Delete profile | Remove an account's config |
 
@@ -378,7 +380,7 @@ Upload and edit your cloud API configs in the browser instead of logging into th
 | VirtFusion | Paste host / token; common vendors can be prefilled |
 | Skip duplicates | Accounts with a name that already exists are skipped, with a notice |
 | Edit online | Open an existing account and edit it in place |
-| Copy to new region | Duplicate an Oracle or AWS account with a different region |
+| Copy to region | Duplicate an Oracle or AWS account with a different region |
 | API outbound proxy | At the bottom of the account editor. To turn it off, click "Remove Proxy" — clearing the fields and saving does not |
 | Delete account | Remove one account's config |
 | Hidden secrets | Keys and tokens are shown masked |

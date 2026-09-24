@@ -109,6 +109,14 @@ This keeps a stray script from running the moment you paste it.
 
 ---
 
+## Copying text in full-screen programs
+
+In full-screen programs such as Claude Code, vim, or htop, the highlight you get by dragging is drawn by the program itself. Nothing is actually selected, so right-click copy gets nothing.
+
+Hold Shift (Option on Mac) while dragging, then right-click to copy.
+
+---
+
 ## Terminal image paste
 
 When you run Claude Code or Codex in the web terminal, you can paste screenshots to them.

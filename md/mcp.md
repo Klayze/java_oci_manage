@@ -43,7 +43,7 @@
 令牌生成后**只显示这一次**，同一个页面会给出三份配好的内容：
 
 - Claude Code
-- Codex CLI（写进 `~/.codex/config.toml`）
+- Codex CLI：分两段，`export` 那一行加到 `~/.bashrc` 或 `~/.zshrc`（新开终端才生效），另一段写进 `~/.codex/config.toml`
 - Cursor 和其他客户端用的 JSON
 
 复制对应的那份，贴进你的 AI 客户端配置里就能用了，地址和令牌都已经填好。
@@ -58,19 +58,26 @@
 
 能执行命令，就能在服务器上给自己留后门。别把 root 或你自己日常用的账号给它。
 
-在服务器上建一个专用账号：
+在服务器上建一个专用账号，并把它的公钥放到它自己改不了的地方：
 
 ```bash
 useradd -m -s /bin/bash aiagent
+mkdir -p /etc/ssh/keys
+echo "ssh-ed25519 AAAA...你的公钥" > /etc/ssh/keys/aiagent
 ```
 
-然后把这个账号的 `authorized_keys` 放到它自己改不了的地方，编辑 `/etc/ssh/sshd_config`：
+然后在 `/etc/ssh/sshd_config` 末尾加上这两行，只对这个账号生效：
 
 ```
-AuthorizedKeysFile /etc/ssh/keys/%u
+Match User aiagent
+    AuthorizedKeysFile /etc/ssh/keys/%u
 ```
 
-在面板里用这个账号保存主机，发令牌时只勾这台。
+**不要**把 `AuthorizedKeysFile` 直接写在外面、不带 `Match User`，那样所有账号都会改从这个目录找公钥，你现在登录用的账号（root、ubuntu、opc 等）原来的公钥都会失效，可能把你自己锁在服务器外面。
+
+改完先执行 `sshd -t` 检查有没有写错，再重启 sshd。当前连接先别断，新开一个窗口确认你平时用的账号和 aiagent 都还能登录。
+
+在面板里用 aiagent 保存主机，发令牌时只勾这台。
 
 **2. AI 看到的内容会发给 AI 服务商。**
 
