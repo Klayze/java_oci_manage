@@ -2,100 +2,86 @@
 
 [简体中文](../mcp.md)
 
-Let AI agents like Claude Code, Codex, and Cursor work on your hosts through the panel.
+Let AI assistants such as Claude Code, Codex, and Cursor work on your servers through the panel.
 
-The point is that credentials never reach the agent: SSH passwords and private keys stay in the panel, and the agent only gets a token. Which hosts it can touch and whether it can run commands are fixed when you issue that token, and you can revoke it at any time.
+Server passwords and private keys stay in the panel; the AI only gets a token. Which machines it can touch and whether it can run commands are decided when you issue that token, and you can take it back at any time.
 
-Settings → "MCP Access" in the top bar. Requires Lightning.
-
----
-
-## First: the certificate
-
-**Claude Code and Codex reject self-signed certificates.** The panel ships with a self-signed one, so the agent will not connect, and the error it reports usually does not look like a certificate problem.
-
-Two ways around it:
-
-- Enable ACME under Settings → SSL Certificate Settings and get a Let's Encrypt certificate (you need a domain — see [Web SSH Terminal Guide — SSL Certificates](./webssh.md#ssl-certificate-configuration))
-- Or put a reverse proxy in front with a certificate you already trust
-
-The MCP page warns you when ACME is off. Do not skim past that warning.
+Where: Settings → "MCP Access" in the top bar. Requires Lightning.
 
 ---
 
-## Issuing a token
+## Step 1: get a real certificate
 
-Click "New Token". Four fields:
+**Claude Code and Codex cannot connect to a panel with a self-signed certificate.** That is what the panel uses by default, so without changing it the AI will not connect — and the error it shows usually does not say the certificate is why.
+
+Enable ACME under Settings → SSL Certificate Settings, using either the server IP or a domain — see [SSL Certificates](./webssh.md#ssl-certificate-configuration). Skip this if you already serve the panel through a reverse proxy with a trusted certificate.
+
+The MCP page shows a warning at the top until this is done.
+
+---
+
+## Step 2: issue a token
+
+Click "New Token" and fill in four things:
 
 | Field | Notes |
 |------|------|
-| **Name** | Whatever you will recognize later, e.g. `claude-code-laptop`. This is how you tell tokens apart when revoking |
+| **Name** | Anything you will recognize, e.g. `claude-code-laptop` |
 | **Scope** | Read-only or executable, see below |
-| **Expiry** | Expires on its own |
-| **Authorized Hosts** | Picked from your saved sessions. Hosts you do not tick are unreachable with this token. Save some hosts first if the list is empty |
-
-Two scopes:
+| **Expiry** | Stops working on its own after this |
+| **Authorized hosts** | Tick the machines this token may use; anything unticked is off limits. If the list is empty, save some hosts on the host panel first |
 
 | Scope | What it allows |
 |------|---------|
-| **Read-only** | List hosts and read files. No command execution |
-| **Executable** | The above plus running commands and writing files — equivalent to that SSH account's shell |
-
-The token is **shown once**. The same screen hands you three ready-made config snippets: Claude Code, Codex CLI (`~/.codex/config.toml`), and generic JSON for Cursor and others. Copy the one you need into your client config; there is no endpoint URL to assemble by hand.
+| **Read-only** | See which machines there are and read files. No commands |
+| **Executable** | Run commands and read / write files — effectively handing it that SSH account |
 
 ---
 
-## What the agent can do
+## Step 3: configure the AI client
 
-Phase one covers SSH, with six tools:
+The token is **shown only once**, and the same page gives you three ready-to-paste configs:
 
-| Tool | Scope | Purpose |
-|------|------|------|
-| `ssh_list_hosts` | Read-only | List the hosts this token is authorized for |
-| `ssh_read_file` | Read-only | Read a remote file |
-| `ssh_exec` | Executable | Run a command. Returns the result directly if it finishes within 55 seconds, otherwise hands back a job id |
-| `ssh_job_read` | Executable | Read a background job's output by id |
-| `ssh_job_cancel` | Executable | Cancel a background job |
-| `ssh_write_file` | Executable | Write a remote file, preserving the original permissions when overwriting |
+- Claude Code
+- Codex CLI (goes in `~/.codex/config.toml`)
+- JSON for Cursor and other clients
 
-Long-running commands do not block the agent — once a command becomes a background job, the agent can go do something else and collect the output later.
+Copy the one you need into your AI client's config. The address and token are already filled in.
 
-Every call is checked item by item: the token is valid and not revoked, the scope covers the tool, and the target host is on that token's list. Host fingerprints are verified against what the panel has on record, and a host configured to use a proxy is refused outright if that proxy is unavailable rather than falling back to a direct connection.
+Once it is set up, just ask the AI things like "check disk usage on the web server". Long-running commands go to the background and it comes back for the result later.
 
 ---
 
-## Two things to get right
+## Staying safe
 
-They are on the page too. Repeating them here because this is where it goes wrong.
+**1. Give the AI its own account without sudo.**
 
-**1. Give the agent its own account, without sudo.**
+Anything that can run commands can leave itself a backdoor. Do not give it root or the account you use yourself.
 
-An agent that can run commands can leave itself a backdoor. Do not hand it root or the account you use yourself.
+Create a dedicated account on the server:
 
 ```bash
-# a dedicated account on the server, no sudo
 useradd -m -s /bin/bash aiagent
 ```
 
-Then keep that account's `authorized_keys` in a root-owned directory so the agent cannot edit its own access:
+Then keep that account's `authorized_keys` somewhere it cannot edit, in `/etc/ssh/sshd_config`:
 
 ```
-# /etc/ssh/sshd_config
 AuthorizedKeysFile /etc/ssh/keys/%u
 ```
 
-Save the host in the panel under that account, and authorize only that host on the token.
+Save the host in the panel under this account, and tick only that host when issuing the token.
 
-**2. Command output goes to the AI provider as context.**
+**2. What the AI sees goes to the AI provider.**
 
-Whatever the agent reads, the provider sees. Keep it away from private keys, config files holding passwords, and database dumps. A read-only token does not help here — read-only restricts writing, not looking.
+Every file it reads and every command output is sent to the AI provider. Keep it away from private keys, config files containing passwords, and database backups. Read-only does not help here — it stops changes, not reading.
 
 ---
 
-## Revoking and auditing
+## Revoking and the call log
 
-Each token in the list shows how many hosts it covers, when it expires, and when it was last used.
+The token list shows how many machines each token covers, when it expires, and when it was last used.
 
-"Revoke" takes effect immediately: the agent loses access on the spot, and **any background jobs it has running are cancelled with it**.
+"Revoke" takes effect immediately: the AI loses access at once, and **anything it has running is stopped too**.
 
-Below that, "Call Log" is the full audit trail — issuance, revocation, and every tool call. It can be refreshed and cleared.
+The "Call Log" below shows everything the AI has done. It can be cleared.

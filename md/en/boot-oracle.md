@@ -40,7 +40,7 @@ If your tenancy has no such shape, the button says so rather than failing silent
 
 Check the count and the key, hit "Start Creating", review shape / OS / script in the confirmation dialog, then "Confirm".
 
-After submitting, the page keeps polling task status and shows the final outcome, so you are not stuck watching Telegram. If polling times out, the result still arrives over Telegram.
+After submitting, the outcome is shown on the page and also sent over Telegram.
 
 ### Field by field
 
@@ -55,7 +55,7 @@ After submitting, the page keeps polling task status and shows the final outcome
 | **SSH Public Key** | Pick a stored key, or click "Upload Key" and paste one (must start with `ssh-`) |
 | **Set Root Password** | Generates a root password, shown once in the success notification and never stored |
 | **Public IP** | Turn it off for a private-only instance |
-| **Transit Encryption** | In-transit encryption for the volume |
+| **Transit Encryption** | Leave at the default |
 | **Delay Range (sec)** | Retry interval for the capacity loop. Give a min and a max; each wait is randomized within the range |
 | **Startup Script** | Shell script executed after the instance comes up. Empty means none |
 
@@ -102,15 +102,14 @@ Select both and only the multi-client mode takes effect.
 
 ## How the capacity retry works
 
-Oracle's free ARM capacity is chronically exhausted, so most creation calls come back `Out of host capacity`. The client keeps retrying until it succeeds or you cancel:
+Oracle's free ARM is almost always sold out, so launching usually fails with `Out of host capacity` (no stock). After you submit, the client keeps trying for you until it gets one or you cancel:
 
-- Each round waits a random interval within your delay range
-- It rotates through the availability domains on the account
-- Every successful instance triggers a Telegram notification with IP, root password, attempt count, and elapsed time
-- When every AD fails on quota rather than capacity, you get the consecutive-failure count — enough to tell "out of stock" from "out of quota"
-- Running tasks appear under "21. Running Tasks" in the bot and in the web task list, and can be cancelled at any time
+- It waits within your delay range between attempts
+- Each instance it gets triggers a Telegram message with the IP, root password, number of attempts, and time taken
+- If it keeps failing because of quota rather than stock, you are told — retrying will not help in that case
+- Running tasks are under "21. Running Tasks" in the bot and in the web task list, and can be cancelled any time
 
-Long-running retry loops are normal here.
+It can keep trying for a long time. That is normal.
 
 ### Force ARM
 

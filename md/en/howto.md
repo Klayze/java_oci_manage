@@ -2,7 +2,7 @@
 
 [简体中文](../howto.md)
 
-Task-oriented walkthroughs. The exhaustive feature list lives in [Implemented Features](./function.md); this page covers what people actually do most.
+Step-by-step for common tasks. The full feature list is in [Implemented Features](./function.md).
 
 - [Rotate IP and auto-update DNS](#rotate-ip-and-auto-update-dns)
 - [Rotate automatically when an IP goes dark](#rotate-automatically-when-an-ip-goes-dark)
@@ -21,146 +21,139 @@ Task-oriented walkthroughs. The exhaustive feature list lives in [Implemented Fe
 
 ## Rotate IP and auto-update DNS
 
-The most common operation after an IP gets blocked: swap the IP and repoint the domain in one go, which amounts to DDNS.
+The usual move once an IP is blocked: change the IP and repoint the domain at the same time, which works like DDNS.
 
-**Prerequisite** — Cloudflare credentials under Settings → Config File Settings. Either form works:
+**First**, add Cloudflare credentials under Settings → Config File Settings. Either:
 
 | Method | Fields | Where to get it |
 |------|--------|---------|
-| API Token (recommended) | `cf_api_token` | Create in the Cloudflare dashboard with Zone→DNS→Edit and Zone→Zone→Read |
+| API Token (recommended) | `cf_api_token` | Create a token in the Cloudflare dashboard with Zone→DNS→Edit and Zone→Zone→Read |
 | Global API Key | `cf_email` + `cf_account_key` | My Profile → API Tokens → API Keys → Global API Key |
 
-With both present, the token wins. The token is scoped; the Global API Key controls the entire account. Use the token unless you cannot.
+Prefer the token: it can only edit DNS, while the Global API Key can do anything on your Cloudflare account.
 
 **Bot** — `/oracle` → "2. IP Management":
 
-- Rotate the IP
-- Point the current IP at a Cloudflare-hosted domain
-- Rotate the IP and update the DNS records bound to it in the same step (pseudo-DDNS)
-- Unbind — clear every domain currently pointing at this IP
+- Change the IP
+- Point the current IP at a domain on Cloudflare
+- Change the IP and update the domains pointing at it in one step
+- Unbind — detach every domain from the current IP
 - Delete the current IP
 
-**Web** — Cloud Management → instance card → network actions: rotate IPv4, rotate IPv6, attach extra IPv4, attach IPv6, attach a reserved IP. DNS records are edited directly under the Cloudflare tab.
+**Web** — Cloud → instance card → Network / IP: change IPv4, change IPv6, add IPv4, add IPv6, attach a reserved IP. Domain records are edited under the Cloudflare tab.
 
 ---
 
 ## Rotate automatically when an IP goes dark
 
-`/oracle` → "16. Auto IP Rotation Monitor".
+`/oracle` → "16. Auto IP Rotation Monitor". Set it and stop watching.
 
 Settings:
 
-- Which IP to watch
-- Whether to test through a proxy (without one, reachability is judged from the client machine)
+- The IP to watch
+- Whether to check through a proxy
 - Netflix non-original content check
-- IP range constraint — keep rotating until the new IP falls inside the range you specify
+- IP range — keep changing until the new IP falls inside it
 
-On trigger it rotates the IP and updates domain bindings per your rules.
+When the IP stops responding it is changed automatically and your domains are updated to match.
 
 ---
 
 ## Auto-shutdown on traffic overage
 
-OCI's free allowance is 10240 GB (10 TB) per month; past that you are billed by usage. Waking up to a few dozen dollars of overage after someone hammers your bandwidth is a common accident.
+Oracle's free traffic is 10240 GB (10 TB) a month; beyond that you pay by usage. Someone hammering your bandwidth overnight can cost you tens of dollars.
 
-Cloud Management → Cloud Monitoring → "+ Add Traffic Guard":
+Cloud → "Cloud Monitoring" → "+ Add Traffic Guard":
 
-1. Pick the account to watch
-2. Set the monthly threshold. **Use 9000, not 10240** — Oracle's billing data lags 4–24 hours, so a threshold at the ceiling arrives too late
+1. Pick the account
+2. Set the limit. **Use 9000, not 10240** — Oracle's traffic figures lag by hours, so a limit at the ceiling triggers too late
 3. Choose "Notify only" or "Auto shutdown"
 
-If you choose auto shutdown, know this:
+With auto shutdown:
 
-- It fires immediately with no second confirmation, and stops instances across **every region** on that account (SOFTSTOP)
-- If you start them again and are still over the threshold, they get stopped again within the hour
-- Leave them off too long and Oracle may reclaim capacity quota for contended shapes like A1, meaning you have to win the capacity race all over again
-
-The usage figure shown in the rule comes from the same billing API and is not real-time.
+- It shuts down the moment the limit is hit, without asking, and it stops that account's machines in **every region**
+- Start them again while still over the limit and they are stopped again within the hour
+- Leave them off too long and Oracle may take back hard-to-get A1 capacity, so you would have to compete for it again
 
 ---
 
 ## Bring stopped instances back up
 
-Cloud Management → Cloud Monitoring → Uptime Guard:
+Cloud → "Cloud Monitoring" → Uptime Guard, two toggles:
 
-| Toggle | Behavior |
+| Toggle | What it does |
 |------|------|
-| Stop notifications | Checks every 8 minutes and sends a Telegram message on unexpected shutdown |
-| Auto-start | Starts stopped instances back up |
+| Stop notifications | Telegram message when a machine stops unexpectedly |
+| Auto-start | Start it again |
 
-Accounts shut down by Traffic Guard are excluded for the rest of the month — otherwise they would restart and keep burning bandwidth.
+Accounts shut down by traffic guard stay off for the rest of the month, so they do not come straight back and keep burning bandwidth.
 
-The bot equivalents are "9. Instance Status Monitoring" and "10. Auto-start on Failure". Same configuration, either side.
+The bot's "9. Instance Status Monitoring" and "10. Auto-start on Failure" are the same settings.
 
 ---
 
 ## A1 free tier audit
 
-Oracle's ARM free allowance is per account, and accounts over it can have resources reclaimed. Cloud Management → A1 Audit checks and downscales in bulk.
+Oracle's ARM free allowance is per account, and accounts over it risk being reclaimed. Cloud → "A1 Audit" checks and downscales in bulk.
 
-1. **Audit** — scans A1.Flex usage across accounts in parallel and flags each as over-allowance, compliant, or query-failed
-2. **Downscale** — three granularities: per account (splits the target evenly across that account's instances), batch (select every downscalable account at once), or per instance
+1. **Audit** — shows ARM usage per account and flags each as over-allowance, compliant, or query failed
+2. **Downscale** — per account (split evenly across that account's machines), batch (tick several accounts and submit together), or per machine
 3. The default target is 2 OCPU / 12 GB and can be changed
 
-Hard rules:
+Keep in mind:
 
-- Downscale only, never upscale, and **never deletes an instance automatically**
-- It reuses the capacity-race resize: out-of-capacity errors retry until they succeed, results arrive over Telegram, and the task can be cancelled from the task list
-- Running instances reboot during the resize
-- The target OCPU count cannot be lower than the instance count, or it will not divide — downscale per instance or delete a few first
-- Deletion is per instance with explicit confirmation. There is no bulk delete
+- It only ever scales down and **never deletes machines on its own**
+- Out-of-capacity errors are retried until it succeeds; the result arrives over Telegram and it can be cancelled from the task list
+- Running machines reboot during the change
+- The target OCPU count cannot be lower than the number of machines, or it will not split evenly — downscale one by one or delete a few first
+- Machines can only be deleted one at a time with confirmation
 
-Free users can audit the current account only; Lightning users can audit and downscale every account at once.
+Free users can audit the current account only; Lightning users can handle every account at once.
 
 ---
 
 ## Domain and certificate expiry monitoring
 
-Cloud Management → Domain Monitoring. Every day at 04:25 it checks domain registration expiry and SSL certificate expiry, then warns over Telegram as the dates approach.
+Cloud → "Domain Monitoring". Checks domain registration and SSL certificate expiry every day and warns you over Telegram before they run out.
 
-Add domains by hand, or use "Import from Cloudflare" to pull in your hosted zones in one shot (duplicates are skipped; if you hit the cap it tells you what was left out).
+Add domains by hand, or click "Import from Cloudflare" to pull in all your domains at once.
 
-Warning tiers are 30, 14, 7, and 1 day plus expired. Each tier fires once, so it will not nag daily.
+You get one reminder each at 30, 14, 7, and 1 day before expiry, and one on the day it expires.
 
-Worth knowing:
+Keep in mind:
 
-- Enter the **registrable domain** (`example.com`), not a subdomain. Subdomains have no registration record, so domain expiry shows "unknown" — certificate checks still work
-- A failed check keeps the previous values and marks them unknown rather than overwriting good data
-- Search handles internationalized domains and converts to punycode automatically
-- Adding, importing, and enabling reminders require Lightning; disabling, deleting, viewing, and "Check now" do not
+- Enter the **main domain** (`example.com`), not a subdomain. Subdomains have no registration date, so domain expiry shows "unknown" — certificate expiry still works
+- Internationalized domains can be searched directly
+- Adding, importing, and turning on reminders need Lightning; disabling, deleting, viewing, and "Check now" do not
 
 ---
 
 ## Give each account its own outbound IP
 
-Several Oracle accounts hitting the API from one client all share the same egress IP. Route specific accounts through their own proxy instead, per profile.
+When several Oracle accounts sit on the same client, they all reach Oracle from the same IP. To send some accounts through their own proxy, set it per account.
 
-**Web** — Settings → Config File Settings → open the profile → "API Outbound Proxy" at the bottom of the panel. Enter the proxy address, plus username and password if it needs auth, and save.
+**Web** — Settings → Config File Settings → open the account → "API Outbound Proxy" at the bottom. Enter the proxy address, plus username and password if it needs them, and click "Save Proxy".
 
-To disable it you must click "Remove Proxy". Clearing the fields and saving does not count.
+To turn it off, click "Remove Proxy". Clearing the fields and saving does not work.
 
-The profile list on the overview page has an outbound-proxy column, so you can see at a glance which accounts are covered and jump straight to the form.
+The account list on the overview page has an "Outbound Proxy" column so you can see which accounts have one.
 
 **Bot** — `/oproxy`.
-
-Accounts with a proxy configured use it for every request; there is no silent fallback to a direct connection on failure. A malformed address fails loudly instead of quietly exposing your real IP.
 
 ---
 
 ## Lost boot volume or terminated instance
 
-Boot volumes and instances are separate resources. As long as the volume survives, so does your data.
+Boot volumes and instances are separate. If the volume is still there, so is your data.
 
-Cloud Management → Volume Management now lists every boot volume without filtering by state, each with a lifecycle badge and an attachment badge. Detached volumes are collected in the "Unattached Boot Volumes" panel — and when an instance has no volume attached, clicking "Boot Volume" expands and scrolls straight to it.
-
-Two paths:
+Cloud → Volumes. Detached boot volumes are in the "Unattached Boot Volumes" panel; if an instance has no boot volume, clicking "Boot Volume" takes you there.
 
 | Situation | What to do |
 |------|------|
-| The instance exists, the volume was detached | Click "Attach" in the unattached panel and pick the target instance. It has to be stopped first |
-| The instance was terminated, the volume was preserved | Launch a new instance from that volume — see [Oracle Instance Launch Guide](./boot-oracle.md#booting-from-an-existing-volume) |
+| The instance exists, its volume was detached | Click "Attach" in the unattached panel and pick the instance. Stop the instance first |
+| The instance was deleted, the volume kept | Launch a new one from it — see [Oracle Instance Launch Guide](./boot-oracle.md#booting-from-an-existing-volume) |
 
-Detaching has the same requirement: the instance must be stopped, and trying it on a running instance is refused. While a volume is mid-transition (attaching or detaching), wait for it to settle before refreshing.
+Detaching a boot volume also requires the instance to be stopped.
 
 ---
 
@@ -168,55 +161,44 @@ Detaching has the same requirement: the instance must be stopped, and trying it 
 
 SSH refuses, you firewalled yourself out, or the system will not boot — use the serial console.
 
-Cloud Management → instance → Serial Console. The client generates a temporary key pair, establishes the connection, and gives you a terminal in the browser.
+Cloud → instance → Serial Console. A terminal opens in the browser, as if you had plugged in a screen and keyboard.
 
-If the system itself is broken, the built-in Netboot.xyz flow detects the UEFI/GRUB menu and boots a rescue environment, pausing for confirmation before anything destructive.
-
-Keys expire after 30 minutes and stale connections are cleaned up on a timer.
+If the system is too broken to start, the built-in Netboot.xyz gets you into a rescue system, pausing for you before anything risky.
 
 ---
 
 ## Run one command across many hosts
 
-Web SSH terminal → Batch Commands. Select the hosts, type the command, send once.
+Web SSH terminal → Batch Commands. Tick the hosts, type the command, send it once.
 
-Results are grouped per host in a workbench, and you can keep issuing commands to the same selection without reselecting.
-
-For a one-off on the client server itself, the bot's `/command` is quicker.
+Results come back per host, and you can run the next command on the same hosts without reselecting them.
 
 ---
 
 ## Import existing cloud instances as sessions
 
-No need to type IPs one by one. Host panel → Cloud Host Sync, covering OCI, AWS EC2, AWS Lightsail, GCP, Azure, DigitalOcean, SolusVM, and VirtFusion.
+No need to type IPs one by one. Host panel → Cloud Host Sync, covering Oracle, AWS, GCP, Azure, DigitalOcean, SolusVM, and VirtFusion.
 
-What syncs is the connection info; usernames and keys still need configuring once. Store the key under SSH Key Management and every session can pick it.
+Only the IP and name come across; set the username and key once yourself. Store the key under SSH Key Management and every connection can use it.
 
-Each cloud's instance cards also carry an "SSH" button that jumps straight into a terminal — handy for one-time connections.
+For a one-off connection, the "SSH" button on any instance card connects directly.
 
 ---
 
 ## Upgrade the client and read its logs
 
-This used to mean SSH-ing into the client server, or using the bot's "32. Upgrade Client" and "34. Latest Logs". Both are now in the browser too, under the settings dropdown, and neither requires Lightning.
+"Client Upgrade" and "Client Logs" in the settings menu — no need to log into the server, and no Lightning needed. The bot's "32. Upgrade Client" and "34. Latest Logs" do the same.
 
-**Client upgrade**
+**Upgrade**
 
-The page shows the installed version and the latest one. If the remote cannot be reached the status reads "cannot check" and the page still works.
+The page shows the current and latest version.
 
-- **Upgrade Now** — download the latest version and restart the client
-- **Force Upgrade** — reinstall over the top without comparing versions. Use it when the version check itself is what is failing, otherwise you just wait on a lookup that will not complete
-- **Restart Service** — restart the process, leave the version alone
+- **Upgrade Now** — download the new version and restart
+- **Force Upgrade** — reinstall regardless of version. Use it when the version check fails
+- **Restart Service** — restart without upgrading
 
-Upgrade and restart share a 5-minute cooldown. Pressing either again inside that window tells you to wait, which is what keeps both ends from launching several installers at once. Web terminals and SSH sessions drop during an upgrade and usually come back within 1-3 minutes.
+Once per 5 minutes. Terminals disconnect during an upgrade and are usually back within 1-3 minutes.
 
-**Client logs**
+**Logs**
 
-Read `log_r_client.log` directly in the browser:
-
-- 100 / 300 / 1000 lines
-- Keyword filter
-- 5-second auto-refresh, which stops itself after repeated read failures
-- Copy the whole thing in one click
-
-The header reports total lines, file size, and last-modified time. Very large files are read back over the last 2 MB only, and the panel says so.
+Show 100 / 300 / 1000 lines, filter by keyword, turn on auto-refresh, copy it all. When something breaks, copy a chunk and send it to support.

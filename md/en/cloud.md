@@ -1,476 +1,425 @@
-# Web Cloud Management Panel Guide
+# Cloud Management Panel Guide
 
 [简体中文](../cloud.md)
 
-The R-Bot client includes a full-featured Web cloud management panel. Manage Oracle Cloud, AWS, GCP, Azure, DigitalOcean, SolusVM, VirtFusion, and Cloudflare DNS resources directly from your browser — fully aligned with the Telegram bot's capabilities.
+Manage Oracle Cloud, AWS, GCP, Azure, DigitalOcean, SolusVM, VirtFusion, and Cloudflare DNS in the browser. It covers much the same ground as the Telegram bot.
 
 ---
 
-## Access
+## Getting there
 
-After starting the client, visit:
+Go to `https://your-ip:9527`, sign in, and switch to "Cloud".
 
-```
-https://YOUR_IP:9527
-```
-
-Log in and access the cloud management workbench via the view switcher from the host dashboard.
-
-> First-time users need to configure cloud platform Profiles in the top bar "Settings" or via the `client_config` file.
+The first time, upload your cloud API configs: Settings → Config File Settings in the top bar, or edit `client_config` directly — see [Installation & Configuration](./install.md).
 
 ---
 
-## Overview Dashboard
+## Overview
 
-The home page displays overview information for the current Profile:
+The current account at a glance:
 
 | Card | Content |
-|------|---------|
-| **Cost** | Last 3 months spending details |
-| **Traffic** | Last 3 months traffic usage |
-| **Subscription** | Subscription type, payment, validity |
-| **Quota** | Instance, network, storage quota usage |
+|------|------|
+| **Cost** | Spending over the last 3 months |
+| **Traffic** | Traffic over the last 3 months |
+| **Subscription** | Type, payment method, validity |
+| **Quota** | How much instance, network, and storage quota is used |
 
-Switch between Profiles to view different account information.
+Switch profiles to look at other accounts.
 
 ---
 
-## Oracle Cloud Management
+## Oracle Cloud
 
-### Instance Management
+### Instances
 
-| Action | Description |
-|--------|-------------|
-| View Instance List | Display all instances and status with boot volume info merged inline |
-| Create Instance | Create a new instance with custom specs, image, and network |
-| Quick Config | One-click AMD Micro 1C/1G or ARM A1 2C/12G preset that also fills image, disk, count, delay, and selects a public key |
-| Create from Boot Volume | Boot an existing detached boot volume with its system and data intact; one instance at a time, and only in the volume's availability domain |
-| Force ARM Boot | Improve ARM instance creation success rate for trial accounts (briefly uses paid features, use at your own risk) |
-| Quick Boot | Quickly create an instance from saved configurations |
-| Result Polling | After submitting, the page keeps checking task status and shows the final result rather than leaving you to wait on Telegram. If polling times out the result still arrives over Telegram |
-| Start / Stop / Reboot | Basic instance operations |
-| Terminate | Delete instance (optionally preserve boot volume) |
-| Reset Image | Reinstall to initial OS image |
-| Scale Up/Down | Adjust CPU and memory specs |
-| Rename | Change instance display name |
-| Repair | Attempt to repair abnormal instance |
+| Action | Notes |
+|------|------|
+| Instance list | Every instance and its state, with boot volume info |
+| Create instance | Pick shape, OS, network and launch — see [Oracle Instance Launch Guide](./boot-oracle.md) |
+| Quick config | Fill in the whole form for AMD Micro 1C/1G or ARM A1 2C/12G in one click |
+| Create from boot volume | Launch from an existing boot volume, system and data intact; one instance at a time, and only in that volume's availability domain |
+| Force ARM | Improves ARM launch success on trial accounts (briefly uses a paid feature — at your own risk) |
+| Quick boot | Fill the form from a launch config saved on the bot |
+| See the result | After submitting, the outcome is shown on the page and sent over Telegram |
+| Start / stop / reboot | Basic actions |
+| Terminate | Delete the instance, optionally keeping its boot volume |
+| Reinstall | Back to the original OS image |
+| Resize | Change CPU and memory |
+| Rename | Change the display name |
+| Repair | Diagnose and reboot a misbehaving instance |
 
-![Create Instance](../screenshots/cloud-create.jpg)
+![Create Instance](../../screenshots/cloud-create.jpg)
 
-### Network / IP Management
+### Network / IP
 
-| Action | Description |
-|--------|-------------|
-| View VNICs | Display NICs, private IPs, public IPs |
-| Change IPv4 | Change public IPv4 address |
-| Change IPv6 | Change IPv6 address |
-| Delete IP | Remove public IP or IPv6 |
-| Attach IPv4 | Add additional IPv4 to instance |
-| Attach IPv6 | Create new IPv6 address |
-| Attach Reserved IP | Attach a reserved public IP |
+| Action | Notes |
+|------|------|
+| NIC list | NICs, private IPs, public IPs |
+| Change IPv4 | Get a new public IPv4 |
+| Change IPv6 | Get a new IPv6 |
+| Delete IP | Remove a public IP or IPv6 |
+| Attach IPv4 | Add another IPv4 to the instance |
+| Attach IPv6 | Create a new IPv6 |
+| Attach reserved IP | Attach a reserved public IP |
 
-### Volume Management
+### Volumes
 
-| Action | Description |
-|--------|-------------|
-| View Volumes | Display all block storage volumes with lifecycle and attachment badges (attached / detached / attaching / detaching). Nothing is filtered out by state |
-| Resize | Increase volume size (cannot shrink) |
-| Adjust VPU | Modify performance units for IO boost |
-| Batch VPU | Max out VPU for all volumes at once |
-| Detach | Detach a volume from its instance. The instance must be stopped first |
-| Attach Boot Volume | Attach a detached boot volume back onto an instance. The target instance must be stopped |
-| Delete | Permanently delete block storage volume |
+| Action | Notes |
+|------|------|
+| Volume list | Every disk, and whether it is attached to an instance |
+| Resize | Grow only, never shrink |
+| Adjust VPU | Faster disk IO |
+| Batch VPU | Max out VPU on every disk at once |
+| Detach | Take a disk off its instance. Stop the instance first |
+| Attach boot volume | Put a detached boot volume back on an instance. Stop the instance first |
+| Delete | Permanent |
 
-Detached boot volumes are collected in the "Unattached Boot Volumes" panel. When an instance has no boot volume attached, clicking "Boot Volume" expands and scrolls to that panel instead of reporting that there is nothing to show.
+Detached boot volumes live in the "Unattached Boot Volumes" panel. If an instance has no boot volume, clicking "Boot Volume" takes you straight there.
 
-### A1 Config Audit / Downscale
+### A1 audit / downscale
 
-A dedicated workbench for the OCI ARM (A1.Flex) always-free quota — one-click bring over-provisioned accounts back within the free tier.
+Oracle's ARM free allowance is per account, and accounts over it risk having resources reclaimed. This checks accounts in bulk and brings them back within the allowance.
 
-| Action | Description |
-|--------|-------------|
-| Config Audit | Scan every account's current-region A1.Flex usage in parallel against the free-tier cap (2 OCPU / 12 GB), flagging Over quota / Within quota / Query failed |
-| Account Downscale | Popup with a customizable target spec (recommended 2 OCPU / 12 GB), evenly split across the account's instances |
-| Batch Downscale | Select all downscalable accounts and submit in bulk |
-| Per-Instance Downscale | Downscale a single instance with the recommended value pre-filled |
-| Downscale Method | Reuses preemptive resize (auto-retry on capacity contention until success + Telegram notify + cancelable in task list); downscale-only, never auto-deletes instances |
-| Delete Instance | Per-instance double confirmation; no blind bulk delete |
-| Scope | Non-Lightning users audit the current account only; Lightning users can audit / downscale all accounts at once |
+| Action | Notes |
+|------|------|
+| Audit | Check ARM usage per account against the free allowance (2 OCPU / 12 GB) and flag over-allowance, compliant, or query failed |
+| Downscale account | Set a target (2 OCPU / 12 GB by default) and split it evenly across that account's instances |
+| Batch downscale | Select every downscalable account and submit at once |
+| Per instance | Downscale a single instance |
+| Delete instance | One at a time with confirmation; no bulk delete |
 
-### User Management
+Out-of-capacity errors during a downscale are retried until it succeeds; the result arrives over Telegram and the task can be cancelled from the task list. It only ever downscales and **never deletes an instance on its own**. Running instances reboot during the change.
 
-| Action | Description |
-|--------|-------------|
-| List Users | Display all users in the tenancy |
-| Create User | Add a new admin user |
-| Update Email | Change user email address |
-| Reset Password | Reset user login password (system-generated strong password supported) |
-| Clear MFA | One-click clear all multi-factor authentication factors |
-| Change Tenant Name | Modify tenancy display name |
-| Delete User | Remove specified user |
-| Password Policy | View identity domain password policy (expiration, complexity, etc.) |
+Free users can audit the current account only; Lightning users can handle every account at once.
 
-### Object Storage (OSS)
+### Users
 
-| Action | Description |
-|--------|-------------|
-| Browse Buckets | List all storage buckets |
-| Browse Objects | Prefix filtering and paginated browsing |
-| Upload Files | Streaming upload with path traversal prevention |
-| Download Files | Streaming download |
-| Delete Objects | Delete individual files |
-| Create Folders | Create directory structures |
+| Action | Notes |
+|------|------|
+| User list | Every user in the tenancy |
+| Create user | Add an administrator |
+| Change email | Update a user's email |
+| Reset password | Optionally let the system generate a strong one |
+| Clear MFA | Remove every two-factor device on a user |
+| Rename tenancy | Change the tenancy display name |
+| Delete user | Remove a user |
+| Password policy | See expiry and complexity rules |
 
-### Profile Management
+### Object Storage
 
-| Action | Description |
-|--------|-------------|
-| List Profiles | Display all configured OCI Profiles, marking which accounts have an API outbound proxy |
-| Switch Profile | Switch to a different cloud account |
-| Copy to New Region | Clone an existing Profile into another region; credentials are copied server-side and only the region is replaced |
-| API Outbound Proxy | Configure an outbound proxy per Profile so different accounts send API requests from different egress IPs |
-| Delete Profile | Remove unwanted Profiles |
+| Action | Notes |
+|------|------|
+| Browse buckets | List every bucket |
+| Browse files | Filter by prefix, paginate |
+| Upload / download | Upload and download files |
+| Delete file | Delete a single file |
+| New folder | Create a folder |
+
+### Profiles
+
+| Action | Notes |
+|------|------|
+| Profile list | Every Oracle account, marking those with an API outbound proxy |
+| Switch profile | Work on another account |
+| Copy to new region | Duplicate an account with a different region instead of re-entering the API details |
+| API outbound proxy | Give one account its own proxy — see [How-To Guide](./howto.md#give-each-account-its-own-outbound-ip) |
+| Delete profile | Remove an account's config |
 
 ### Email Delivery
 
-| Action | Description |
-|--------|-------------|
-| One-Click Setup | Enter domain and sender address to automatically create email domain, DKIM signing, DNS records, sender registration, and SMTP credentials |
-| DNS Mode | Supports Cloudflare auto-config and manual mode; manual mode pauses to display DNS records for user confirmation |
-| Setup Progress | Async execution with real-time progress bar, resumable after leaving the page |
-| Domain Management | View email domain list, DKIM verification status, and lifecycle state |
-| DKIM Info | View DKIM CNAME record details for manual DNS configuration reference |
-| DKIM Repair | Auto-reconfigure DNS CNAME records via Cloudflare when DKIM verification fails (async with progress tracking) |
-| Sender Management | View senders under a specific domain and their status |
-| Add Sender | Add a new sender address to an existing email domain |
-| SMTP Config | View SMTP connection info (server/port/username) |
-| Regenerate Credentials | Regenerate SMTP password (shown once, save it securely) |
-| Test Send | Send test email via OCI HTTP API with custom recipient/subject/body |
-| Delete Domain | Cascade delete email domain with associated DKIM and sender resources |
+| Action | Notes |
+|------|------|
+| One-click setup | Enter a domain and sender address; the email domain, DKIM, DNS records, sender, and SMTP account are all set up for you |
+| DNS setup | Automatic for domains on Cloudflare; otherwise the records are listed for you to add by hand before continuing |
+| Progress | Progress bar that survives leaving the page |
+| Domain list | Email domains and DKIM status |
+| DKIM info | The DKIM records, for adding by hand |
+| DKIM repair | Reconfigure through Cloudflare when DKIM verification fails |
+| Senders | View and add sender addresses |
+| SMTP settings | Server, port, username |
+| New password | The SMTP password is shown once — save it |
+| Test send | Send a message with your own recipient, subject, and body |
+| Delete domain | Remove the email domain and its senders |
 
-### Serial Console
+### Serial console
 
-Connect to an OCI instance's serial console via Console Connection — useful for emergency maintenance when SSH is unavailable.
+The way in when SSH is not.
 
-| Action | Description |
-|--------|-------------|
-| Connect Console | Auto-generate temporary RSA key pair and establish SSH-over-SSH tunnel |
-| WebSocket Terminal | Real-time serial terminal interaction in browser |
-| Netboot.xyz Automation | Auto-detect UEFI/GRUB menus and boot into Netboot.xyz rescue system |
-| Connection Management | Auto-reuse existing connections, 30-minute key TTL, scheduled cleanup of expired connections |
-| User Confirmation | Semi-automatic confirmation workflow before dangerous operations |
+| Action | Notes |
+|------|------|
+| Connect | One click, and a terminal opens in the browser |
+| Netboot.xyz rescue | Boots into a rescue system when the OS will not start |
+| Confirmation | Pauses for you before anything risky |
 
 ---
 
-## AWS Management
+## AWS
 
-### EC2 Instance Management
+### EC2 instances
 
-| Action | Description |
-|--------|-------------|
-| View Instance List | Display all EC2 instances with real-time status |
-| Create Instance | Select AMI image, instance type, SSH key; async creation with progress tracking |
-| Start / Stop / Reboot | Basic instance power operations |
-| Terminate | Permanently delete EC2 instance |
+| Action | Notes |
+|------|------|
+| Instance list | Every EC2 instance and its state |
+| Create instance | Pick image, type, SSH key; progress is shown after creating |
+| Start / stop / reboot | Basic actions |
+| Terminate | Permanent |
 
-### Lightsail Instance Management
+### EC2 firewall / security groups
 
-| Action | Description |
-|--------|-------------|
-| View Instance List | Show Lightsail instances with public IP, bundle, blueprint, spec, region, and creation time |
-| Create Instance | Switch the AWS creation page to the Lightsail product line, then pick region, availability zone, blueprint, bundle, key pair, name, and count. Bundles are filtered by blueprint platform and minimum compute, and locally stored public keys can be imported directly. Creation is asynchronous; on completion it lists the instances and public IPs and sends a Telegram notification |
-| Start / Stop / Reboot | Basic power operations |
-| Delete Instance | Delete a Lightsail instance (dangerous action, requires confirmation) |
-| Traffic This Month | View inbound / outbound / total traffic and the bundle allowance; sourced from monitoring metrics, not billing usage |
+The "Firewall" button on an EC2 instance card manages groups and rules in one dialog.
 
-### Lightsail Network / IP Management
+| Action | Notes |
+|------|------|
+| View groups | Those on this instance, and others available in the same network |
+| Attach / detach | Add or remove a group. At least one must stay |
+| Create and attach | Make a new group and attach it right away |
+| Delete group | Only when no instance is using it |
+| Inbound / outbound rules | Add and remove rules by protocol, port range, and IPv4 / IPv6 range |
+| Presets | SSH 22, HTTP 80, HTTPS 443, Ping, allow all — one click fills the form |
 
-| Action | Description |
-|--------|-------------|
-| Static IP Management | Allocate and attach a static IP, detach, release |
-| Change Static IP | Allocate a new static IP, switch the attachment, and release the old one |
-| Change Dynamic IP | Stop then start to try to obtain a new dynamic public IP when no static IP is attached |
-| Firewall Ports | View and save public port rules; supports single ports and port ranges |
+Remove every inbound rule and SSH stops working too; remove every outbound rule and the server loses internet access.
 
-### Network Management
+### Lightsail instances
 
-| Action | Description |
-|--------|-------------|
-| VPC Management | View and manage VPC resources |
+| Action | Notes |
+|------|------|
+| Instance list | IP, bundle, OS, specs, region, creation time |
+| Create instance | Switch the AWS creation page to Lightsail, then pick region, zone, OS, bundle, key, name, and count. Saved public keys can be used directly. When done it shows the instances and IPs and sends a Telegram message |
+| Start / stop / reboot | Basic actions |
+| Delete | With confirmation |
+| This month's traffic | In, out, total, and the bundle allowance. For reference only — not billed usage |
 
-### EC2 Firewall / Security Groups
+### Lightsail network / IP
 
-The "Firewall" button on an EC2 instance card opens one dialog covering both groups and rules.
+| Action | Notes |
+|------|------|
+| Static IP | Create and attach, detach, release |
+| Change static IP | Swap in a new static IP; the old one is released |
+| Reboot for new IP | For instances without a static IP, stop and start to get a new public IP |
+| Firewall ports | View and edit open ports, including ranges |
 
-| Action | Description |
-|--------|-------------|
-| View Groups | Split into groups attached to this instance and other groups in the same VPC |
-| Attach / Detach | Add or remove a security group. An instance must keep at least one |
-| Create and Attach | Create a new group by name and description and attach it immediately |
-| Delete Group | Only possible while no resource references the group |
-| Inbound / Outbound Rules | Add and remove rules across tcp / udp / icmp / icmpv6 / all protocols, port ranges, and IPv4 and IPv6 CIDRs |
-| Rule Presets | SSH 22, HTTP 80, HTTPS 443, Ping, allow-all. One click fills the form; you still confirm before adding |
-| Referencing Rules | Rules that reference another security group or a prefix list are shown read-only |
+### Other
 
-When a direction has no rules the panel spells out the consequence: no inbound rules means every inbound connection including SSH is refused; no outbound rules means the instance cannot reach the internet at all, apt and yum included.
-
-### Statistics & Monitoring
-
-| Action | Description |
-|--------|-------------|
-| Cost Statistics | AWS Cost Explorer integration for spending details |
-| Usage Monitoring | CloudWatch / Lightsail metrics queries |
-| Quota Query | View resource quota usage |
+| Action | Notes |
+|------|------|
+| VPC | View and manage networks |
+| Costs | Spending breakdown |
+| Metrics | Instance monitoring data |
+| Quotas | Resource quota usage |
 
 ---
 
-## GCP Management
+## GCP
 
-### Compute Engine Instance Management
-
-| Action | Description |
-|--------|-------------|
-| View Instance List | Aggregated view across all zones with status |
-| Create Instance | Select zone, machine type, image, disk size; free tier hints included |
-| Start / Stop / Reset | Basic instance power operations |
-| Delete Instance | Async deletion with Telegram notification on completion |
-| Change IP | Release old external IP and allocate a new one |
-
-### Statistics & Overview
-
-| Action | Description |
-|--------|-------------|
-| Overview | Instance count stats, zone distribution, e2-micro free tier count |
-| Traffic Query | Last 3 months sent/received traffic breakdown |
+| Action | Notes |
+|------|------|
+| Instance list | Instances across every zone |
+| Create instance | Pick zone, machine type, OS, disk size; free-tier options are marked |
+| Start / stop / reboot | Basic actions |
+| Delete | Telegram message when done |
+| Change IP | Get a new public IP |
+| Overview | Instance count, zone spread, how many free-tier e2-micro in use |
+| Traffic | Last 3 months |
 
 ---
 
-## Cloudflare DNS Management
+## Cloudflare DNS
 
-| Action | Description |
-|--------|-------------|
-| List Zones | Display all Cloudflare-managed domains |
-| View Records | View all DNS records for a domain |
-| Add Record | Create A/AAAA/CNAME and other DNS records |
-| Edit Record | Modify existing DNS records |
-| Delete Record | Remove specified DNS record |
+| Action | Notes |
+|------|------|
+| Domain list | Every domain on Cloudflare |
+| Records | View, add, edit, delete A / AAAA / CNAME and other records |
 
 ---
 
-## DigitalOcean Management
+## DigitalOcean
 
-### Droplet Management
-
-| Action | Description |
-|--------|-------------|
-| View Droplet List | Display all Droplets with status, IPs, and specs |
-| Create Droplet | Select image, region, size (5 types), SSH key; supports bulk creation and cloud-init scripts |
-| Power On / Off / Reboot | Basic power operations |
-
-### Reserved IP Management
-
-| Action | Description |
-|--------|-------------|
-| View Reserved IPs | Display all reserved IPs with assignment status |
-| Allocate Reserved IP | Allocate a new reserved IP to a Droplet |
-| Assign / Unassign | Bind or unbind a reserved IP from a Droplet |
-| Release | Delete a reserved IP |
-
-### Monitoring & Billing
-
-| Action | Description |
-|--------|-------------|
-| Bandwidth Monitoring | Per-instance current-period traffic on cards; approximated by daily segment integration (DO has no official traffic API) |
-| Billing Overview | Account balance and month-to-date charges |
+| Action | Notes |
+|------|------|
+| Droplet list | Every Droplet with state, IP, size |
+| Create Droplet | Pick OS, region, size, SSH key; batch creation and a startup script are supported |
+| Power on / off / reboot | Basic actions |
+| Reserved IPs | Assign, attach, detach, release |
+| Traffic | Current-period traffic on each card (estimated) |
+| Billing | Balance and this month's charges |
 
 ---
 
-## Azure Management
+## Azure
 
-| Action | Description |
-|--------|-------------|
-| List VMs | Display all virtual machines and status |
-| Create VM | Create a new virtual machine |
-| Delete VM | Delete a virtual machine |
-| Restart VM | Restart a virtual machine |
-| Change IP | Change public IP address |
-| Resource Usage | View quota usage |
+| Action | Notes |
+|------|------|
+| VM list | Every VM and its state |
+| Create / delete / restart | Basic actions |
+| Change IP | Get a new public IP |
+| Resource usage | Quota usage |
 
 ---
 
-## SolusVM Management
+## SolusVM
 
-| Action | Description |
-|--------|-------------|
-| List Nodes | List all VPS nodes |
-| Node Dashboard | View VPS status details |
-| Boot / Shutdown / Reboot | VPS power operations |
-
----
-
-## VirtFusion Management
-
-| Action | Description |
-|--------|-------------|
-| Vendor Grouping | Group instance cards by configured vendor alias |
-| List Instances | Display state, IPv4/IPv6, CPU, memory, disk, and creation time |
-| Traffic Panel | Show usage and percentage for the current billing period |
-| Quick SSH | One-click jump to Web SSH for running instances |
-| Start / Stop / Restart / Power Off | Common power actions |
-| Rename | Rename an instance directly from the card |
-| Reset Password | Return a new system password (shown once) |
-| Config Error Handling | Show direct reconfiguration hints when token or panel access fails |
+| Action | Notes |
+|------|------|
+| VPS list | Every VPS |
+| Status | Details for one VPS |
+| Boot / shutdown / reboot | Basic actions |
 
 ---
 
-## Cloud Monitoring
+## VirtFusion
 
-The "Cloud Monitoring" tab in the workbench. Two groups of rules, sharing one configuration with the bot's instance monitoring — change either side and the other follows.
-
-### Traffic Guard (per account)
-
-The OCI free allowance is 10240 GB per month; past that you are billed by usage. Set a monthly threshold per account.
-
-| Item | Description |
-|------|-------------|
-| Watched Account | Configured per Profile |
-| Threshold | In GB. Billing data lags 4–24 hours, so 9000 leaves room to act — a threshold at the ceiling arrives too late |
-| Notify Only | Telegram message, instances untouched |
-| Auto Shutdown | Immediately stops **every region's** instances on that account (SOFTSTOP). Fires without a second confirmation |
-| Current Usage | Sourced from the Oracle billing API; not a real-time figure |
-
-Before choosing auto shutdown: if you start the instances again while still over the threshold, they are stopped again within the hour. And if they stay off too long, Oracle may reclaim capacity quota for contended shapes like A1, meaning you have to win the capacity race again.
-
-### Uptime Guard (all accounts)
-
-| Toggle | Description |
-|--------|-------------|
-| Stop Notifications | Checks every 8 minutes and sends a Telegram message on unexpected shutdown |
-| Auto-Start | Starts stopped instances back up. Accounts shut down by Traffic Guard are excluded for the rest of the month so bandwidth does not keep burning |
+| Action | Notes |
+|------|------|
+| Instance list | Grouped by vendor, with state, IP, CPU, memory, disk, creation time |
+| Traffic | Usage in the current billing period |
+| SSH | Jump straight into a terminal |
+| Power on / off / reboot / force off | Power actions |
+| Rename | Right on the card |
+| Reset password | The new password is shown once |
+| Config errors | Tells you when the token is invalid or the panel unreachable, with a link to fix it |
 
 ---
 
-## Domain Monitoring
+## Cloud monitoring
 
-The "Domain Monitoring" tab in the workbench. A daily job checks domain registration expiry and SSL certificate expiry, warning over Telegram as the dates approach.
+The "Cloud Monitoring" tab. It shares settings with the bot's instance monitoring — change either and both follow.
 
-| Action | Description |
-|--------|-------------|
-| Add Domain | Add a single domain manually |
-| Import from Cloudflare | Bulk-import hosted zones; duplicates are skipped, and anything left out by the cap is reported |
-| Reminder Toggle | Enable or disable alerts per domain |
-| Check Now | Probe immediately instead of waiting for the daily run |
-| Search | Handles internationalized domains, converting to punycode automatically |
-| Delete | Stop monitoring the domain |
+### Traffic guard
 
-Alert tiers are 30 / 14 / 7 / 1 days plus expired, deduplicated per tier so each one fires once.
+Oracle's free traffic is 10240 GB a month; beyond that you pay by usage. Set a limit per account and decide what happens when it is reached.
 
-Enter the registrable domain (`example.com`) rather than a subdomain — subdomains have no registration record, so domain expiry shows "unknown" while certificate checks still work. A failed check keeps the previous values and marks them unknown instead of overwriting good data.
+| Item | Notes |
+|------|------|
+| Account | Set per account |
+| Threshold | In GB. Oracle's traffic figures lag by hours, so use 9000 rather than cutting it close at 10240 |
+| Notify only | A Telegram message; instances untouched |
+| Auto shutdown | Immediately stops that account's instances in **every region**, with no second confirmation |
 
-Permissions: adding, importing, and enabling reminders require Lightning; disabling, deleting, viewing, and "Check now" do not.
+Before choosing auto shutdown: if you start them again while still over, they are stopped again within the hour; and if they stay off too long, Oracle may take back hard-to-get A1 capacity, so you would be competing for it again.
+
+### Uptime guard
+
+| Toggle | Notes |
+|------|------|
+| Stop notifications | Telegram message when an instance stops unexpectedly |
+| Auto-start | Start stopped instances again. Accounts shut down by traffic guard stay off for the rest of the month |
+
+---
+
+## Domain monitoring
+
+The "Domain Monitoring" tab. Checks domain registration expiry and SSL certificate expiry every day and warns you over Telegram before they run out.
+
+| Action | Notes |
+|------|------|
+| Add domain | Add one by hand |
+| Import from Cloudflare | Pull in every domain on Cloudflare; ones already present are skipped |
+| Reminder toggle | Per domain |
+| Check now | Run a check immediately instead of waiting for the daily one |
+| Search | Works with internationalized domains |
+| Delete | Stop monitoring |
+
+You get one reminder each at 30, 14, 7, and 1 day before expiry, and one on the day it expires.
+
+Enter the main domain (`example.com`), not a subdomain. Subdomains have no registration date, so domain expiry shows "unknown" (certificate expiry still works).
+
+Adding, importing, and turning on reminders need Lightning; disabling, deleting, viewing, and "Check now" do not.
 
 ---
 
 ## Settings
 
-### Instance Monitoring
+### Instance monitoring
 
-| Feature | Description |
-|---------|-------------|
-| Monitor Alerts | Periodic instance status monitoring with Telegram notifications |
-| Auto-Start | Auto-start instances when anomalies detected |
-| Daily Report | Scheduled push of cost and traffic reports |
-| Health Check | Batch check all Profile account status |
-| Boot Notification Account Type | Boot notifications mark the account as upgraded / regular (determined by OCI subscription paymentModel; left unmarked if uncertain) |
+| Feature | Notes |
+|------|------|
+| Instance alerts | Telegram message when an instance misbehaves |
+| Auto-start | Try to start it again |
+| Daily report | Spending and traffic every day |
+| Health check | Check every account in one go |
+| Account type in launch alerts | Launch notifications say whether the account is upgraded or regular; left out when unsure |
 
-### Client Maintenance
+### Client upgrade and logs
 
-"Client Upgrade" and "Client Logs" in the settings dropdown, matching the bot's "32. Upgrade Client" and "34. Latest Logs". Neither requires Lightning.
+In the settings menu. Same as the bot's "32. Upgrade Client" and "34. Latest Logs", and no Lightning needed.
 
-**Client Upgrade**
+**Upgrade**
 
-| Action | Description |
-|--------|-------------|
-| Version Check | Shows the installed and latest versions. If the remote is unreachable it degrades to "cannot check" without blocking the page |
-| Upgrade Now | Download the latest version and restart the client |
-| Force Upgrade | Skip the version comparison and reinstall over the top — for when the version check itself is what is broken |
-| Restart Service | Restart the client process without changing versions |
+| Action | Notes |
+|------|------|
+| Version check | Current and latest version |
+| Upgrade now | Download the new version and restart |
+| Force upgrade | Reinstall regardless of version — use it when the version check fails |
+| Restart service | Restart without upgrading |
 
-Upgrade and restart share a 5-minute cooldown; pressing either again inside that window tells you to wait. That is what stops two ends double-clicking into several installer processes trampling each other. Web terminals and SSH sessions drop during an upgrade and typically return within 1-3 minutes.
+One upgrade or restart per 5 minutes. Terminals disconnect during an upgrade and are usually back within 1-3 minutes.
 
-**Client Logs**
+**Logs**
 
-Read `log_r_client.log` straight from the browser: 100 / 300 / 1000 lines, keyword filtering, 5-second auto-refresh, and copy-all. The panel reports total lines, file size, and last-modified time; very large files are read back only over the last 2 MB.
+Read the client log in the browser: 100 / 300 / 1000 lines, keyword filter, auto-refresh, copy all. Handy for pasting a chunk to support when something goes wrong.
 
-### ACME Certificates
+### SSL certificate
 
-Configure Let's Encrypt auto-certificates in the Settings page. See [Web SSH Guide — SSL Certificates](./webssh.md#ssl-certificate-configuration) for details.
+See [Web SSH Terminal Guide — SSL Certificates](./webssh.md#ssl-certificate-configuration).
 
-### Cloud Platform Configuration
+### Cloud configs
 
-Upload, edit, and manage cloud platform API configurations directly from the web interface across all 7 clouds (OCI/AWS/GCP/Azure/DO/SolusVM/VirtFusion) — no need to manually edit the `client_config` file.
+Upload and edit your cloud API configs in the browser instead of logging into the server to edit `client_config`.
 
-| Feature | Description |
-|---------|-------------|
-| OCI Config Upload | Paste API config text + upload PEM key file, key_file path auto-configured |
-| AWS Config Upload | Paste Access Key ID / Secret Access Key configuration |
-| GCP Config Upload | Upload Service Account JSON key file, credentials auto-extracted |
-| DO Config Upload | Paste DigitalOcean API Token |
-| Azure Config Upload | Paste appId/password/tenant configuration |
-| SolusVM Config Upload | Paste API URL and key configuration |
-| VirtFusion Config Upload | Paste host/token/preset or use preset vendors for quick filling |
-| Merge Mode | Duplicate Profile names are skipped with a warning, new Profiles are appended |
-| Online Profile Editing | Configured Profiles are shown as a chip list; click to edit fields inline — no more SSH-ing in to edit files |
-| Copy Profile to New Region | OCI / AWS Profiles can be cloned into another region in one click; only the region changes, and AWS availability-zone forms are normalized automatically |
-| API Outbound Proxy | Configured per account at the bottom of the profile editor. Disabling requires "Remove Proxy" — clearing the fields and saving does not count |
-| Delete Single Profile | Delete a specific Profile and clean up dangling default-Profile references |
-| Secret Masking | Secrets / tokens are masked in the UI; plaintext is never sent to the browser |
-| AWS Region Fix | Real-time hint and one-click fix when a region is mistyped as an availability zone (e.g. ap-southeast-1a) |
-| Cloudflare Config | Edit Cloudflare credentials online. Both API Token (needs only Zone→DNS→Edit and Zone→Zone→Read) and Global API Key are supported; the token wins when both are present |
-| Network Config | Edit local address, URL name, and startup mode online |
-| Hot Reload | Configuration hot-reloads immediately on save; can also be refreshed manually — no client restart needed |
+| Feature | Notes |
+|------|------|
+| Oracle | Paste the API config and upload the .pem key; the path is filled in for you |
+| AWS | Paste the Access Key ID and Secret Access Key |
+| GCP | Upload the service account JSON key |
+| DigitalOcean | Paste the API token |
+| Azure | Paste appId / password / tenant |
+| SolusVM | Paste the API URL and keys |
+| VirtFusion | Paste host / token; common vendors can be prefilled |
+| Skip duplicates | Accounts with a name that already exists are skipped, with a notice |
+| Edit online | Open an existing account and edit it in place |
+| Copy to new region | Duplicate an Oracle or AWS account with a different region |
+| API outbound proxy | At the bottom of the account editor. To turn it off, click "Remove Proxy" — clearing the fields and saving does not |
+| Delete account | Remove one account's config |
+| Hidden secrets | Keys and tokens are shown masked |
+| AWS region check | Warns and offers a fix when a zone (e.g. `ap-southeast-1a`) is entered as a region |
+| Cloudflare | API token (recommended) or email + Global API Key |
+| Network | Local address, URL name, startup mode |
+| Takes effect on save | No client restart needed |
 
 ---
 
 ## Themes
 
-The web interface supports 8 themes, each with both light and dark modes:
+Eight themes, each in light and dark:
 
 | Theme | Style |
-|-------|-------|
-| Classic | Default blue, clean and professional |
-| Sakura | Pink tones, ACG / anime style |
-| Cyber | Neon cyan-blue, techy |
-| Ink | Golden antique, Chinese traditional |
-| Aurora | Teal-purple gradient, northern lights |
-| Stellar | Deep purple tones, starry sky |
-| Abyss | Deep ocean blue-green, bioluminescent |
-| Sunset | Warm orange-coral, cozy |
+|------|------|
+| Classic | Default blue |
+| Sakura | Pink |
+| Cyber | Neon cyan |
+| Ink | Gold, Chinese ink |
+| Aurora | Teal-green-purple gradient |
+| Stellar | Deep purple night sky |
+| Abyss | Deep-sea blue-green |
+| Sunset | Warm orange |
 
-Switch themes using the selector in the top bar. Toggle the light/dark mode button to switch between light and dark modes.
-
----
-
-## Cloud Instance Quick SSH
-
-All cloud platforms (OCI / AWS EC2 / AWS Lightsail / GCP / Azure / DO / SolusVM / VirtFusion) provide an "SSH" button on instance cards. Click to jump directly to the terminal and connect to the instance — no manual connection setup needed. Each card also provides a one-click IP copy button.
+Switch theme and light / dark in the top bar.
 
 ---
 
-## Multi-Cloud Health Check
+## One-click SSH
 
-A single panel summarizes total instance count, running/stopped status, and DNS info across all cloud platforms — a one-screen overview of multi-cloud asset health.
-
----
-
-## Workbench Experience
-
-- **Priority-Ordered Tabs** — Cloud platform tabs are arranged by frequency of use (OCI, AWS, Azure, GCP, DO, Cloudflare, SolusVM, VirtFusion)
-- **Form-Based Config Upload** — Configuration upload switched to form inputs, no more manual formatting
-- **Regrouped Action Buttons** — Instance action buttons grouped by usage frequency
+Every instance card on every cloud has an "SSH" button that connects without typing the IP. The IP can be copied with one click as well.
 
 ---
 
-## Online Support
+## Multi-cloud overview
 
-Click the floating button in the bottom-right corner to open the built-in chat window for direct support communication. Image messages are supported. The icon supports **auto-hide** and **free dragging** to avoid blocking the operation area.
+One page with instance totals, running and stopped counts, DNS details, and more across every cloud.
+
+---
+
+## Support chat
+
+The floating button in the bottom-right opens a chat with support; you can send images. The button hides itself and can be dragged out of the way.

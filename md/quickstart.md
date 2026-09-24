@@ -17,7 +17,7 @@ mkdir rbot && cd rbot
 wget -O sh_client_bot.sh https://github.com/semicons/java_oci_manage/releases/latest/download/sh_client_bot.sh && chmod +x sh_client_bot.sh && bash sh_client_bot.sh
 ```
 
-脚本自动识别 CPU 架构下载对应版本，装完以守护进程启动，默认端口 9527。
+脚本会自动下载适合你机器的版本，装完就在后台运行，默认端口 9527。
 
 装在哪台机器上，API 私钥就存在哪台机器上。选一台你自己控制的。
 

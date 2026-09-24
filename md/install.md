@@ -119,13 +119,13 @@ region=ap-northeast-1
 aws=end
 ```
 
-> `region` 为可选参数，默认为 `us-east-1`。字段名支持驼峰格式（`accessKeyId`）和下划线格式（`access_key_id`）。如需管理 Lightsail，请确保该 AWS 凭据拥有 Lightsail 实例、静态 IP、端口、防火墙和监控指标相关权限。
+> `region` 可不填，默认 `us-east-1`。要管理 Lightsail 的话，这个 AWS 账号需要有 Lightsail 的实例、静态 IP、端口、防火墙和监控权限。
 
 ### GCP 配置
 
 通过 Web 界面上传 GCP Service Account JSON 密钥文件即可自动配置，无需手动编辑。
 
-上传后系统会自动提取 `project_id`、`client_email`、`private_key` 并写入配置文件，支持多个 Profile。
+上传后自动完成配置，可以传多个账号。
 
 > Service Account JSON 密钥在 GCP 控制台 → IAM → 服务账号 → 密钥 中生成下载。
 
@@ -210,9 +210,9 @@ cf_email=你的Cloudflare邮箱
 cf_account_key=你的Global_API_Key
 ```
 
-> 获取路径：我的个人资料 → API 令牌 → API 密钥 → Global API Key。这把钥匙拥有账户全部权限且不可收敛，每个账户只有一把，能用 Token 就别用它。
+> 获取路径：我的个人资料 → API 令牌 → API 密钥 → Global API Key。它的权限覆盖整个 Cloudflare 账户，推荐用上面的 Token。
 
-两者都填时以 Token 为准。DNS 记录管理、换 IP 自动更新 DNS、ACME 证书签发、域名监控导入、邮件域校验共用这套凭据。
+两个都填时用 Token。换 IP 更新解析、SSL 证书签发、域名监控导入、邮件服务等功能都用这套凭据。
 
 ### 网络配置（可选）
 
@@ -242,7 +242,7 @@ model=
 | `bash sh_client_bot.sh upgrade` | 升级到最新版本 |
 | `bash sh_client_bot.sh uninstall` | 卸载 |
 
-升级、重启和查看日志也可以在 Web 界面完成，见 [Web 云管理面板指南 — 客户端维护](./cloud.md#客户端维护)。
+升级、重启和查看日志也可以在 Web 界面完成，见 [Web 云管理面板指南 — 客户端升级与日志](./cloud.md#客户端升级与日志)。
 
 ---
 
@@ -275,4 +275,4 @@ https://你的IP:9527
 
 安装脚本兼容 BusyBox 环境，可以直接装在 OpenWrt 路由器上。
 
-ARM64 包按 ARMv8.0 编译，RK3399、Cortex-A53 / A72 这类老一些的 ARM 芯片也能跑。
+RK3399、树莓派 3 / 4（需 64 位系统）这类老一些的 ARM 设备也能装。

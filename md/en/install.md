@@ -14,7 +14,7 @@ wget -O sh_client_bot.sh https://github.com/semicons/java_oci_manage/releases/la
 
 The install script works under BusyBox, so it runs on OpenWrt routers as well.
 
-ARM64 builds target ARMv8.0, so older ARM chips such as the RK3399 and Cortex-A53 / A72 run them too.
+Older ARM devices such as the RK3399 and Raspberry Pi 3 / 4 (64-bit OS) are supported too.
 
 ---
 
@@ -107,11 +107,11 @@ region=ap-northeast-1
 aws=end
 ```
 
-> `region` is optional, defaults to `us-east-1`. Field names support both camelCase (`accessKeyId`) and snake_case (`access_key_id`).
+> `region` is optional and defaults to `us-east-1`.
 
 ### GCP Configuration
 
-Upload a GCP Service Account JSON key file via the web interface — credentials are auto-extracted, no manual editing needed. Multiple profiles are supported.
+Upload a GCP service account JSON key in the web interface and it is configured for you. Several accounts are supported.
 
 > Generate the Service Account JSON key at: GCP Console → IAM → Service Accounts → Keys.
 
@@ -196,9 +196,9 @@ cf_email=your_cloudflare_email
 cf_account_key=your_Global_API_Key
 ```
 
-> Get it at: My Profile → API Tokens → API Keys → Global API Key. This key carries full account permissions, cannot be scoped down, and there is exactly one per account. Prefer the token.
+> Get it at: My Profile → API Tokens → API Keys → Global API Key. It can do anything on your Cloudflare account, so the token above is preferred.
 
-With both configured, the token wins. DNS record management, auto DNS updates on IP change, ACME certificate issuance, domain monitoring imports, and email domain verification all share these credentials.
+With both filled in, the token is used. DNS updates on IP change, SSL certificate issuance, domain monitoring imports, and Email Delivery all rely on these credentials.
 
 ### Network Configuration (Optional)
 
@@ -225,7 +225,7 @@ model=
 | `pgrep -f r_client \| xargs -r kill -9` | Stop |
 | `bash sh_client_bot.sh uninstall` | Uninstall |
 
-Upgrading, restarting, and reading logs can also be done from the web UI — see [Cloud Management Panel Guide — Client Maintenance](./cloud.md#client-maintenance).
+Upgrading, restarting, and reading logs can also be done from the web UI — see [Cloud Management Panel Guide — Client Upgrade and Logs](./cloud.md#client-upgrade-and-logs).
 
 ---
 

@@ -22,11 +22,11 @@ R-Bot is a **dual-architecture** multi-cloud infrastructure management system th
 | **Smart Web SSH Terminal** | Host dashboard + terminal workspace with multi-tab, SFTP, port forwarding, and smart multi-key auto-matching |
 | **Web Cloud Management** | Manage instances, networks, volumes, users, DNS, object storage, serial console from your browser |
 | **Multi-Cloud Support** | Oracle Cloud, AWS, GCP, Azure, DigitalOcean, SolusVM, VirtFusion |
-| **Cloudflare Integration** | DNS management, ACME auto-certificates, auto DNS update on IP change |
-| **MCP Access** | AI agents such as Claude Code, Codex, and Cursor operate authorized hosts through the panel; SSH credentials are never handed to the agent |
+| **Cloudflare Integration** | DNS management, automatic SSL certificates, DNS updated when the IP changes |
+| **MCP Access** | Let Claude Code, Codex, and Cursor work on the servers you authorize through the panel, without handing over passwords or keys |
 | **Cloud Monitoring & Expiry Alerts** | Auto-shutdown on traffic overage, auto-restart on unexpected stop, Telegram alerts before domains and certificates expire |
 | **Cloud Host Sync** | One-click discover and sync hosts from multiple clouds to SSH session list |
-| **GraalVM Native Compilation** | Sub-second startup, low memory footprint |
+| **Lightweight** | Starts in a second, low memory use, runs on routers too |
 
 ![Web SSH Terminal](../../screenshots/terminal.jpg)
 
@@ -94,13 +94,13 @@ Access through your browser — no client software required.
 - **SFTP File Manager** — Browse, upload, download, delete, online edit (syntax highlighting)
 - **Port Forwarding** — Local and remote forwarding
 - **Batch Commands** — Send commands to multiple hosts simultaneously, result workbench with continuous execution
-- **Terminal Image Paste** — Shortcut / right-click / drag-and-drop; the image is uploaded to the remote host and its path pasted, for Claude Code and Codex to attach
+- **Terminal Image Paste** — Paste screenshots to Claude Code and Codex in the web terminal
 - **Resource Alerts** — CPU / memory / disk threshold alerts pushed via Telegram
 - **Multi-Cloud Health Check** — One-screen overview of instance status across all cloud platforms
 - **Host Dashboard** — Card grid displaying all sessions with search, tag grouping, quick connect
 - **Session Management** — Save connection profiles, centralized key management
 - **Cloud Host Sync** — One-click discover hosts from OCI/AWS EC2/AWS Lightsail/GCP/Azure/DO/SolusVM/VirtFusion and import to session list
-- **SSL Certificates** — Built-in ACME auto-provisioning (Let's Encrypt)
+- **SSL Certificates** — Let's Encrypt certificates, issued and renewed automatically
 - **OCI Object Storage** — Manage Buckets and objects in-browser
 
 Details → [Web SSH Terminal Guide](./webssh.md)
@@ -112,22 +112,21 @@ Details → [Web SSH Terminal Guide](./webssh.md)
 Manage multi-cloud resources directly from your browser — fully aligned with the Telegram bot's capabilities.
 
 - **Instance Management** — Create instance, quick boot, start, stop, reboot, terminate, reset OS, scale up/down
-- **Boot Volume Management** — Resize, tune performance, detach, and reattach to a stopped instance
 - **Quick Config Launch** — One-click AMD Micro / ARM A1 presets, or boot straight from an existing boot volume
-- **A1 Config Audit** — Scan OCI ARM always-free quota + preemptive downscale (account-level / batch / per-instance, never auto-deletes instances)
-- **Serial Console** — OCI instance serial console connection with Netboot.xyz rescue boot automation
+- **A1 Audit** — Find accounts over the ARM free allowance and bring them back, never deleting machines on its own
+- **Serial Console** — Rescue machines you cannot SSH into, including a Netboot.xyz rescue system
 - **Network Management** — Change IP, attach IPv4/IPv6, reserved IP management
-- **Volume Management** — Resize, VPU performance tuning, detach/delete
+- **Disk Management** — Grow, faster IO, detach, reattach, delete
 - **User Management** — Create users, reset passwords, update email, clear 2FA
 - **Statistics Overview** — Cost, traffic, subscription info, quota queries
-- **DNS Management** — Cloudflare domain record CRUD operations (API Token auth with minimal scope supported)
+- **DNS Management** — Add, edit, and delete Cloudflare DNS records
 - **Cloud Monitoring** — Per-account traffic thresholds with automatic shutdown, plus stop notifications and auto-restart
 - **Domain Monitoring** — Daily domain and SSL certificate expiry checks with tiered Telegram alerts, one-click Cloudflare import
-- **Account Isolation** — Per-profile API outbound proxy, and one-click profile copy to a new region
-- **Client Maintenance** — Check the version, upgrade, and restart the client from the browser, with live access to its run log
+- **Multiple Accounts** — Each account can use its own proxy; account configs can be copied to a new region in one click
+- **Client Maintenance** — Upgrade and restart the client from the browser, read its logs
 - **Object Storage** — OCI Object Storage bucket and file management
-- **Email Delivery** — One-click email domain setup (DKIM/DNS/SMTP fully automated), test send
-- **AWS Management** — EC2 instance create/manage/delete plus firewall and security group management, Lightsail instance create/list/power/delete/traffic/network-IP management, network management, cost statistics
+- **Email Delivery** — Set up a sending domain and SMTP account in one click, send a test
+- **AWS Management** — EC2 instances and firewall; Lightsail creation, management, traffic, and IP changes; costs
 - **GCP Management** — Compute Engine instance create/manage/delete, change IP, overview stats, traffic query
 - **DigitalOcean Management** — Droplet create/manage, reserved IP, bandwidth monitoring, billing overview
 - **Azure Management** — VM create/delete/restart, change IP, resource usage
@@ -149,7 +148,7 @@ Details → [Web Cloud Management Guide](./cloud.md)
 | [Getting Started](./quickstart.md) | From installing the client to launching your first instance and connecting to it |
 | [Oracle Instance Launch Guide](./boot-oracle.md) | Launching from the bot and the web panel, how the capacity retry works, failure triage |
 | [How-To Guide](./howto.md) | Rotate IPs with DNS updates, traffic-overage shutdown, A1 downscaling, domain monitoring, serial-console rescue |
-| [MCP Access](./mcp.md) | Let AI agents work on your hosts through the panel: issuing tokens, client config, safety rules |
+| [MCP Access](./mcp.md) | Let AI assistants work on your servers through the panel: tokens, client setup, staying safe |
 
 **Reference**
 
@@ -196,16 +195,16 @@ bash sh_client_bot.sh uninstall
 
 ---
 
-## Architecture
+## How It Works
 
 ```
-User → Telegram → R-Bot Server → HTTP/WS → Local Client → Cloud SDK
-User → Browser → Local Client (Web UI) → Cloud SDK
+You → Telegram bot → your own client → your clouds
+You → Browser ─────→ your own client → your clouds
 ```
 
-- **R-Bot Server** — Receives Telegram commands, routes to client
-- **Local Client** — Wraps cloud platform SDK calls, provides Web SSH + Cloud Management UI
-- **API Keys** — Stored only on the local client; server never touches them
+- The client runs on your own server, and your cloud API keys are stored only there
+- The bot just passes your commands to the client and keeps no keys
+- Stop the client whenever you want out
 
 ---
 

@@ -17,7 +17,7 @@ mkdir rbot && cd rbot
 wget -O sh_client_bot.sh https://github.com/semicons/java_oci_manage/releases/latest/download/sh_client_bot.sh && chmod +x sh_client_bot.sh && bash sh_client_bot.sh
 ```
 
-The script detects your CPU architecture, downloads the matching build, and starts as a daemon on port 9527.
+The script downloads the right version for your machine and keeps it running in the background on port 9527.
 
 Your API private keys live on whichever machine you install this on. Choose accordingly.
 
@@ -52,7 +52,7 @@ Other entry points and details: [Oracle Cloud API Configuration](./oracle.md).
 
 Then upload it one of two ways:
 
-**Web (recommended)** — Settings → Config File Settings → OCI. Paste that block, upload the `.pem` alongside it, and `key_file` gets filled in for you. Saved config hot-reloads; no restart.
+**Web (recommended)** — Settings → Config File Settings → OCI. Paste that block, upload the `.pem` alongside it, and `key_file` gets filled in for you. It takes effect on save; no restart.
 
 **Bot** — scp the private key to the client server yourself, note its path, set `key_file=` to that path, and send the whole block after `/oci`. The bot accepts the path, never the key file itself.
 
