@@ -23,6 +23,7 @@ R-Bot is a **dual-architecture** multi-cloud infrastructure management system th
 | **Web Cloud Management** | Manage instances, networks, volumes, users, DNS, object storage, serial console from your browser |
 | **Multi-Cloud Support** | Oracle Cloud, AWS, GCP, Azure, DigitalOcean, SolusVM, VirtFusion |
 | **Cloudflare Integration** | DNS management, ACME auto-certificates, auto DNS update on IP change |
+| **MCP Access** | AI agents such as Claude Code, Codex, and Cursor operate authorized hosts through the panel; SSH credentials are never handed to the agent |
 | **Cloud Monitoring & Expiry Alerts** | Auto-shutdown on traffic overage, auto-restart on unexpected stop, Telegram alerts before domains and certificates expire |
 | **Cloud Host Sync** | One-click discover and sync hosts from multiple clouds to SSH session list |
 | **GraalVM Native Compilation** | Sub-second startup, low memory footprint |
@@ -93,6 +94,7 @@ Access through your browser — no client software required.
 - **SFTP File Manager** — Browse, upload, download, delete, online edit (syntax highlighting)
 - **Port Forwarding** — Local and remote forwarding
 - **Batch Commands** — Send commands to multiple hosts simultaneously, result workbench with continuous execution
+- **Terminal Image Paste** — Shortcut / right-click / drag-and-drop; the image is uploaded to the remote host and its path pasted, for Claude Code and Codex to attach
 - **Resource Alerts** — CPU / memory / disk threshold alerts pushed via Telegram
 - **Multi-Cloud Health Check** — One-screen overview of instance status across all cloud platforms
 - **Host Dashboard** — Card grid displaying all sessions with search, tag grouping, quick connect
@@ -140,13 +142,14 @@ Details → [Web Cloud Management Guide](./cloud.md)
 
 ## Documentation
 
-**Start with these three**
+**Tutorials — best read in order**
 
 | Tutorial | Description |
 |----------|-------------|
 | [Getting Started](./quickstart.md) | From installing the client to launching your first instance and connecting to it |
 | [Oracle Instance Launch Guide](./boot-oracle.md) | Launching from the bot and the web panel, how the capacity retry works, failure triage |
 | [How-To Guide](./howto.md) | Rotate IPs with DNS updates, traffic-overage shutdown, A1 downscaling, domain monitoring, serial-console rescue |
+| [MCP Access](./mcp.md) | Let AI agents work on your hosts through the panel: issuing tokens, client config, safety rules |
 
 **Reference**
 

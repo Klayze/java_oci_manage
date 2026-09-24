@@ -95,6 +95,8 @@ SSH connections support SOCKS5 proxy for restricted network environments. Config
 
 On first connection, the SHA256 host fingerprint is displayed for confirmation and saved. If the fingerprint changes on subsequent connections (possibly due to server reinstallation or a security risk), a warning is shown.
 
+For connections with a stored fingerprint, verification happens during key exchange, **before authentication**: a host key that does not match ends the connection, so the password or private key is never sent. Connections without a stored fingerprint behave as before.
+
 ### Quick Connect
 
 In the host dashboard, click the "Quick Connect" button on a saved host card to connect directly without re-entering details. Click the "Load" button to open the config drawer for editing connection parameters.
@@ -128,6 +130,24 @@ After connecting, the toolbar provides quick access to common features:
 ## Multi-Line Paste Protection
 
 When you right-click-paste multi-line commands, the entire block is placed on the input line but **not executed automatically** — press Enter once more to run it (trailing newline stripped + bracketed-paste negotiation), preventing an accidentally pasted script from running immediately. Single-line paste keeps the original auto-execute behavior. A subtle hint is shown when the remote side does not enable bracketed paste.
+
+---
+
+## Terminal Image Paste
+
+Paste images into the terminal. The image is uploaded to a temporary directory on the remote host and what lands in the terminal is its absolute path there — which is all Claude Code, Codex, and similar tools need to attach it.
+
+In a local terminal those tools read your system clipboard. In a web terminal they run on the remote side and see an empty clipboard there, and the terminal channel itself carries only text, hence this route.
+
+| Entry point | Key / action |
+|------|-----------|
+| Shortcut | `Cmd+V` on Mac, `Ctrl+Shift+V` on Windows and Linux |
+| Right-click | Right-click paste |
+| Drag and drop | Drop an image file onto the terminal |
+
+PNG / JPG / GIF / WebP, up to 20 MB each. Multiple images paste in order, separated by spaces.
+
+Whenever the clipboard holds text it is pasted as text, exactly as before. Remote temporary files older than 24 hours are cleaned up automatically.
 
 ---
 

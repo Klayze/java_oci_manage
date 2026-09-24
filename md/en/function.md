@@ -96,6 +96,7 @@
 - [x] Terminal toolbar (favorites, search, quick tool access)
 - [x] Terminal WebGL rendering (xterm.js 6.0, auto-fallback to DOM) + official search addon (highlight / overview ruler / count)
 - [x] Multi-line paste protection (whole block stops on the input line, press Enter to run, prevents accidental script execution)
+- [x] Terminal image paste (shortcut / right-click / drag-and-drop; the image is uploaded to the remote host and its path pasted, so Claude Code and Codex can attach it)
 - [x] Host tags & group filtering (inline tagging on cards, AND-intersection filter, hit count, search matches tags)
 - [x] Terminal split-screen (horizontal split into two independent panes, one-click clone of current session, refresh persistence)
 - [x] Session suspension (screen-style explicit suspend + reattach from list, up to 20 per user)
@@ -104,13 +105,14 @@
 - [x] Multi-cloud health check panel (one-screen overview of instance status across all cloud platforms)
 - [x] Session profile save & management
 - [x] Centralized SSH key management (encrypted storage, concurrent smart matching)
-- [x] Host fingerprint verification (SHA256)
+- [x] Host fingerprint verification (SHA256; stored fingerprints are checked during key exchange, before authentication, so passwords never reach an impersonating host)
 - [x] Auto host specs detection (OS, CPU, memory, disk)
 - [x] OCI Object Storage management (bucket browsing, file CRUD)
 - [x] Resource monitor panel (top bar displaying real-time CPU / memory / disk / network metrics)
 - [x] ACME auto SSL certificates (Let's Encrypt)
 - [x] Cloud host sync (one-click discover hosts from OCI/AWS/GCP/Azure/DO/SolusVM/VirtFusion and import to session list, real-time SSE progress)
 - [x] Cloud platform config online upload, editing & management (OCI/AWS/GCP/Azure/DO/SolusVM/VirtFusion, merge mode + inline edit/delete single Profile + secret masking + hot-reload on save)
+- [x] MCP access (AI agents operate authorized hosts through the panel; read-only and executable token scopes, host allowlist, expiry, instant revocation, call auditing, and SSH credentials never leave the panel)
 - [x] Web client upgrade (version check, upgrade, force upgrade, restart service, with a trigger cooldown against duplicate launches)
 - [x] Web client run log (line count selection, keyword filtering, auto-refresh, copy-all)
 - [x] Telegram verification code login + anti-brute-force

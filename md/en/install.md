@@ -14,6 +14,8 @@ wget -O sh_client_bot.sh https://github.com/semicons/java_oci_manage/releases/la
 
 The install script works under BusyBox, so it runs on OpenWrt routers as well.
 
+ARM64 builds target ARMv8.0, so older ARM chips such as the RK3399 and Cortex-A53 / A72 run them too.
+
 ---
 
 ## 2. Activate the Client
